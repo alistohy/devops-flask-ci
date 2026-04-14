@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-ci-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flask-ci
+  template:
+    metadata:
+      labels:
+        app: flask-ci
+    spec:
+      containers:
+        - name: flask-ci
+          image: alistohy/devops-flask-ci:v1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+
