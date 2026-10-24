@@ -1,127 +1,95 @@
-# 🚀 DevOps Flask CI Project
+# DevOps Flask CI & GitOps Project
 
-![CI Pipeline](https://github.com/alistohy/devops-flask-ci/actions/workflows/ci.yml/badge.svg)]
+![CI Pipeline](https://github.com/alistohy/devops-flask-ci/actions/workflows/ci.yml/badge.svg)
 
-## 📌 Overview
+## Overview
 
-This project demonstrates a complete DevOps workflow:
+End-to-end DevOps lab project built around a lightweight Python Flask API. It covers containerization, automated testing and image builds via GitHub Actions, Kubernetes deployment on **k3s** (using both raw manifests and a custom **Helm** chart), and continuous delivery with **Argo CD**.
 
-* Build a Flask application
-* Containerize using Docker
-* Implement CI with GitHub Actions
-* Push image to Docker Hub
-* Deploy application on Kubernetes (k3s)
+## Architecture
 
----
+`GitHub Push` → `GitHub Actions (pytest & Docker build)` → `Docker Image` → `k3s Cluster (Manifests / Helm / Argo CD)` → `NodePort Service (:30080)`
 
-## 🏗️ Architecture
+## Tech Stack
 
-User → Flask App → Docker Container → Kubernetes (k3s) → Service (NodePort)
+- **Application:** Python 3.11, Flask, Pytest
+- **Containerization:** Docker
+- **CI Pipeline:** GitHub Actions
+- **Orchestration:** Kubernetes (k3s), Helm
+- **GitOps / CD:** Argo CD
 
----
+## Project Structure
 
-## 🛠️ Tech Stack
-
-* Python (Flask)
-* Docker
-* GitHub Actions (CI)
-* Docker Hub
-* Kubernetes (k3s)
-
----
-
-## 📂 Project Structure
-
-```
+```text
 devops-flask-ci/
-├── app.py
-├── requirements.txt
-├── Dockerfile
-├── test_app.py
+├── app.py                        # Flask application (/ and /health endpoints)
+├── test_app.py                   # Unit tests with pytest
+├── requirements.txt              # Python dependencies
+├── Dockerfile                    # Python 3.11-slim container image definition
+├── .github/workflows/ci.yml      # GitHub Actions CI pipeline
 ├── k8s/
-│   ├── deployment.yaml
-│   └── service.yaml
-├── .github/workflows/ci.yml
-└── README.md
+│   ├── deployment.yaml           # Standard Kubernetes Deployment
+│   └── service.yaml              # NodePort Service (port 30080)
+├── helm/flask-ci/                # Helm chart for parameterized deployment
+│   ├── Chart.yaml
+│   ├── values.yaml
+│   └── templates/
+└── argocd/
+    └── flask-app.yaml            # Argo CD Application manifest (automated sync & self-heal)
 ```
 
----
+## Running Locally with Docker
 
-## ⚙️ CI Pipeline
+Build and run the container:
 
-The GitHub Actions pipeline performs:
-
-1. Install dependencies
-2. Run tests using pytest
-3. Build Docker image
-
----
-
-## 🐳 Docker
-
-### Build Image
-
-```
-docker build -t devops-flask-ci:v1 .
+```bash
+docker build -t alistohy/devops-flask-ci:v1 .
+docker run -d -p 5000:5000 --name flask-ci alistohy/devops-flask-ci:v1
 ```
 
-### Run Container
+Test the endpoints:
 
+```bash
+curl http://localhost:5000/
+curl http://localhost:5000/health
 ```
-docker run -d -p 5000:5000 devops-flask-ci
-```
 
----
+## Deploying to Kubernetes (k3s)
 
-## ☸️ Kubernetes Deployment
+### Option 1: Standard Manifests
 
-### Apply manifests
-
-```
+```bash
 kubectl apply -f k8s/deployment.yaml
 kubectl apply -f k8s/service.yaml
+kubectl get pods,svc
 ```
 
-### Verify
+### Option 2: Helm Chart
 
+```bash
+helm install flask-ci ./helm/flask-ci
+helm list
 ```
-kubectl get pods
-kubectl get svc
+
+### Option 3: GitOps with Argo CD
+
+Apply the Argo CD Application manifest to sync automatically from the `main` branch (`pruned` and `selfHeal` enabled):
+
+```bash
+kubectl apply -f argocd/flask-app.yaml
 ```
 
----
+## Verification
 
-## 🌐 Access Application
+Once deployed on the cluster, test the `NodePort` service:
 
-```
+```bash
 curl http://localhost:30080/
-```
-
-Health check:
-
-```
 curl http://localhost:30080/health
 ```
 
----
+## Author
 
-## 📸 Screenshots
-
-(Add screenshots here)
-
----
-
-## 👨‍💻 Author
-
-Ali Stohy
-
-* GitHub: https://github.com/alistohy
-* LinkedIn: https://www.linkedin.com/in/ali-stohy-453792239/
-
----
-
-## 🚀 Next Steps
-
-* Implement ArgoCD (GitOps)
-* Add monitoring (Prometheus & Grafana)
-* Use Terraform for infrastructure
+**Ali Stohy**
+- GitHub: [alistohy](https://github.com/alistohy)
+- LinkedIn: [Ali Stohy](https://www.linkedin.com/in/ali-stohy-453792239/)
